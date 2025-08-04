@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   setConnecting, 
@@ -22,13 +22,74 @@ const WalletConnect = () => {
     error 
   } = useSelector(state => state.wallet);
 
+  // Set up event listeners for account and network changes
+  const setupEventListeners = useCallback(() => {
+    // Listen for account changes
+    walletService.onAccountsChanged(async (accounts) => {
+      if (accounts.length === 0) {
+        // User disconnected their wallet
+        handleDisconnect();
+      } else {
+        // User switched accounts
+        try {
+          const newAddress = accounts[0];
+          const newBalance = await walletService.getBalance(newAddress);
+          const networkData = await walletService.getCurrentNetwork();
+          
+          dispatch(setConnected({
+            address: newAddress,
+            network: networkData.network,
+            chainId: networkData.chainId,
+            balance: parseFloat(newBalance).toFixed(4)
+          }));
+          
+          toast.success(`🔄 Account switched\n${newAddress.slice(0, 6)}...${newAddress.slice(-4)}`, {
+            duration: 3000,
+            style: {
+              background: '#3B82F6',
+              color: 'white',
+            },
+          });
+        } catch (error) {
+          console.error('Error switching accounts:', error);
+        }
+      }
+    });
+
+    // Listen for network changes
+    walletService.onChainChanged(async (chainId) => {
+      try {
+        const networkData = await walletService.getCurrentNetwork();
+        const account = await walletService.getCurrentAccount();
+        const balance = await walletService.getBalance(account);
+        
+        dispatch(setNetwork({
+          network: networkData.network,
+          chainId: networkData.chainId
+        }));
+        
+        dispatch(setBalance(parseFloat(balance).toFixed(4)));
+        
+        toast.success(`🌐 Network switched to ${networkData.network}`, {
+          duration: 3000,
+          style: {
+            background: '#8B5CF6',
+            color: 'white',
+          },
+        });
+      } catch (error) {
+        console.error('Error switching networks:', error);
+      }
+    });
+  }, [dispatch]);
+
   // Initialize wallet connection on component mount
   useEffect(() => {
     checkExistingConnection();
-  }, []);
+  }, [checkExistingConnection]);
 
   // Check if wallet is already connected
-  const checkExistingConnection = async () => {
+  const checkExistingConnection = useCallback(async () => {
     try {
       if (walletService.isMetaMaskInstalled()) {
         const accounts = await window.ethereum.request({ method: 'eth_accounts' });
@@ -42,7 +103,7 @@ const WalletConnect = () => {
     } catch (error) {
       // Silently fail - user hasn't connected yet
     }
-  };
+  }, [dispatch, setupEventListeners]);
 
   // Handle wallet connection
   const handleConnect = async () => {

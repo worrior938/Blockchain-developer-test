@@ -9,6 +9,7 @@ import walletService from '../utils/walletService';
 import toast from 'react-hot-toast';
 
 // Simple NFT contract ABI (for demonstration)
+// eslint-disable-next-line no-unused-vars
 const NFT_ABI = [
   {
     "inputs": [
