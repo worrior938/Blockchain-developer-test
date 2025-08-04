@@ -97,12 +97,6 @@ const WalletConnect = () => {
     });
   }, [dispatch]);
 
-  // Initialize wallet connection on component mount
-  // eslint-disable-next-line no-use-before-define
-  useEffect(() => {
-    checkExistingConnection();
-  }, [checkExistingConnection]);
-
   // Check if wallet is already connected
   const checkExistingConnection = useCallback(async () => {
     try {
@@ -119,6 +113,11 @@ const WalletConnect = () => {
       // Silently fail - user hasn't connected yet
     }
   }, [dispatch, setupEventListeners]);
+
+  // Initialize wallet connection on component mount
+  useEffect(() => {
+    checkExistingConnection();
+  }, [checkExistingConnection]);
 
   // Handle wallet connection
   const handleConnect = async () => {
