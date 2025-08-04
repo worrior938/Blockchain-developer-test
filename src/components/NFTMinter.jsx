@@ -195,7 +195,7 @@ const NFTMinter = ({ contractAddress = "0x12345678901234567890123456789012345678
     }
   };
 
-  const useSampleURI = (uri) => {
+  const handleSampleURI = (uri) => {
     setTokenURI(uri);
     toast.success('📋 Sample URI loaded!');
   };
@@ -321,7 +321,7 @@ const NFTMinter = ({ contractAddress = "0x12345678901234567890123456789012345678
                 key={index}
                 type="button"
                 className="btn btn-outline-secondary btn-sm"
-                onClick={() => useSampleURI(uri)}
+                onClick={() => handleSampleURI(uri)}
                 disabled={isMinting}
               >
                 Sample {index + 1}
@@ -371,7 +371,6 @@ const NFTMinter = ({ contractAddress = "0x12345678901234567890123456789012345678
             </small>
           </div>
         )}
-        </div>
       </div>
     </div>
   );
