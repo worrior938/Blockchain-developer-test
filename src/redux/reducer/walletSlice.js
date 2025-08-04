@@ -77,6 +77,9 @@ const walletSlice = createSlice({
     },
     clearCurrentTransaction: (state) => {
       state.currentTransaction = null;
+    },
+    setCurrentTransaction: (state, action) => {
+      state.currentTransaction = action.payload;
     }
   }
 });
@@ -90,7 +93,8 @@ export const {
   setError,
   addPendingTransaction,
   updateTransactionStatus,
-  clearCurrentTransaction
+  clearCurrentTransaction,
+  setCurrentTransaction
 } = walletSlice.actions;
 
 export default walletSlice.reducer;
