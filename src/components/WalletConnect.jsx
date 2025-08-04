@@ -22,7 +22,21 @@ const WalletConnect = () => {
     error 
   } = useSelector(state => state.wallet);
 
+  // Handle wallet disconnection
+  const handleDisconnect = useCallback(() => {
+    walletService.disconnectWallet();
+    walletService.removeListeners();
+    dispatch(setDisconnected());
+    toast.success('👋 Wallet disconnected', {
+      style: {
+        background: '#6B7280',
+        color: 'white',
+      },
+    });
+  }, [dispatch]);
+
   // Set up event listeners for account and network changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const setupEventListeners = useCallback(() => {
     // Listen for account changes
     walletService.onAccountsChanged(async (accounts) => {
@@ -84,6 +98,7 @@ const WalletConnect = () => {
   }, [dispatch]);
 
   // Initialize wallet connection on component mount
+  // eslint-disable-next-line no-use-before-define
   useEffect(() => {
     checkExistingConnection();
   }, [checkExistingConnection]);
@@ -147,73 +162,9 @@ const WalletConnect = () => {
     }
   };
 
-  // Handle wallet disconnection
-  const handleDisconnect = () => {
-    walletService.disconnectWallet();
-    walletService.removeListeners();
-    dispatch(setDisconnected());
-    toast.success('👋 Wallet disconnected', {
-      style: {
-        background: '#6B7280',
-        color: 'white',
-      },
-    });
-  };
 
-  // Set up event listeners for account and network changes
-  const setupEventListeners = () => {
-    // Listen for account changes
-    walletService.onAccountsChanged(async (accounts) => {
-      if (accounts.length === 0) {
-        // User disconnected their wallet
-        handleDisconnect();
-      } else {
-        // User switched accounts
-        try {
-          const newAddress = accounts[0];
-          const newBalance = await walletService.getBalance(newAddress);
-          const networkData = await walletService.getCurrentNetwork();
-          
-          dispatch(setConnected({
-            address: newAddress,
-            network: networkData.network,
-            chainId: networkData.chainId,
-            balance: parseFloat(newBalance).toFixed(4)
-          }));
-          
-          toast.success(`🔄 Account switched\n${newAddress.slice(0, 6)}...${newAddress.slice(-4)}`, {
-            duration: 3000,
-          });
-        } catch (error) {
-          toast.error('Failed to update account information');
-        }
-      }
-    });
 
-    // Listen for network changes
-    walletService.onChainChanged(async (chainId) => {
-      try {
-        const networkData = await walletService.getCurrentNetwork();
-        dispatch(setNetwork(networkData));
-        
-        // Update balance for new network
-        if (address) {
-          const newBalance = await walletService.getBalance(address);
-          dispatch(setBalance(parseFloat(newBalance).toFixed(4)));
-        }
-        
-        toast.success(`🌐 Network changed to ${networkData.network}`, {
-          duration: 4000,
-          style: {
-            background: '#3B82F6',
-            color: 'white',
-          },
-        });
-      } catch (error) {
-        toast.error('Failed to update network information');
-      }
-    });
-  };
+
 
   // Format address for display
   const formatAddress = (addr) => {
